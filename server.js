@@ -20,7 +20,7 @@ const app = express()
 const port = process.env.PORT || 3030
 
 
-app.use(express.static('Client'))
+app.use(express.static('Public'))
 app.use(cookieParser())
 app.use(cors(corsOptions))
 app.use(express.json())
