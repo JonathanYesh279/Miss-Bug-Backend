@@ -1,4 +1,5 @@
 import express from 'express'
+import path from 'path'
 import cors from 'cors'
 import path from 'path'
 import cookieParser from 'cookie-parser'
@@ -20,7 +21,8 @@ const app = express()
 const port = process.env.PORT || 3030
 
 
-app.use(express.static('Public'))
+app.use(express.static('public'))
+app.use(express.static('Client'))
 app.use(cookieParser())
 app.use(cors(corsOptions))
 app.use(express.json())
@@ -34,7 +36,7 @@ app.use('/api/user', userRoutes)
 
 
 app.get('/**', (req, res) => {
-  res.sendFile(path.resolve('Client/index.html'))
+  res.sendFile(path.resolve(__dirname, 'Client/index.html', 'index.html'))
 })
 
 // Start server
