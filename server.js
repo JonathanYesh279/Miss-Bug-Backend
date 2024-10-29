@@ -3,17 +3,22 @@ import cors from 'cors'
 import path from 'path'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
 
 import { authRoutes } from './api/auth/auth.routes.js'
 import { bugRoutes } from './api/bug/bug.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config()
 
-const corsOptions = {
-  origin: ['http://127.0.0.1:5173', 'http://localhost:5173'],
-  credentials: true,
-}
+// const corsOptions = {
+//   origin: ['http://127.0.0.1:5173', 'http://localhost:5173'],
+//   credentials: true,
+// }
 
 
 const app = express()

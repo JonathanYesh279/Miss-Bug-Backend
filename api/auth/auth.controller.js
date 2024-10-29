@@ -22,6 +22,10 @@ export async function login(req, res) {
 export async function signup(req, res) {
   try {
     const credentials = req.body
+
+     if (!credentials.username || !credentials.password || !credentials.fullname) {
+      return res.status(400).json({ err: 'All fields are required' })
+    }
     
     const account = await authService.signup(credentials)
     loggerService.info('User logged in', account)
