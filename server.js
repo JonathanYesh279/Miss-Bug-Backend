@@ -11,8 +11,10 @@ import { userRoutes } from './api/user/user.routes.js'
 dotenv.config()
 
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' ? true : ['http://127.0.0.1:5173', 'http://localhost:5173'],
-  credentials: true,
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://miss-bug-backend-2s2z.onrender.com'
+    : ['http://127.0.0.1:5173', 'http://localhost:5173'],
+  credentials: true
 }
 
 const app = express()
