@@ -55,8 +55,8 @@ async function query(filterBy = {}, sortOpts = {}, pageOpts = {}) {
       totalPages
     }
   } catch (err) {
-    loggerService.error(err)
-    throw 'Could not get bugs'
+    loggerService.error('Cannot get bugs', err)
+    throw new Error('Could not get bugs')
   }
 }
 

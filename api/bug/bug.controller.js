@@ -33,27 +33,27 @@ export async function getBug(req, res) {
     const bugId = req.params.bugId
     console.log('Cookies received:', req.cookies);
 
-    let visitedBugs = []
-    if (req.cookies.visitedBugs) {
-        visitedBugs = JSON.parse(req.cookies.visitedBugs)
+    const visitedBubIds = []
+    if (req.cookies.visitedBubIds) {
+        visitedBubIds = JSON.parse(req.cookies.visitedBubIds)
     }
 
     const now = Date.now()
-    visitedBugs = visitedBugs.filter(visit => now - visit.timestamp < 7000)
+    visitedBubIds = visitedBubIds.filter(visit => now - visit.timestamp < 7000)
 
-    const uniqueVisitedBugs = new Set(visitedBugs.map((visit) => visit.id))
-    if (uniqueVisitedBugs.size >= 3 && !uniqueVisitedBugs.has(bugId)) {
+    const uniquevisitedBubIds = new Set(visitedBubIds.map((visit) => visit.id))
+    if (uniquevisitedBubIds.size >= 3 && !uniquevisitedBubIds.has(bugId)) {
       console.log('Limit reached')
       return res.status(401).send('Wait for a bit')
     }
 
-    if (!uniqueVisitedBugs.has(bugId)) {
-      visitedBugs.push({ id: bugId, timestamp: now })
+    if (!uniquevisitedBubIds.has(bugId)) {
+      visitedBubIds.push({ id: bugId, timestamp: now })
     }
 
-    console.log('Updated visitedBugs:', visitedBugs)
+    console.log('Updated visitedBubIds:', visitedBubIds)
 
-    res.cookie('visitedBugs', JSON.stringify(visitedBugs), { maxAge: 7000 })
+    res.cookie('visitedBubIds', JSON.stringify(visitedBubIds), { maxAge: 7000 })
 
     const bug = await bugService.getById(bugId)
     if (!bug) {
@@ -61,14 +61,11 @@ export async function getBug(req, res) {
       loggerService.warn(`Bug ${bugId} not found`)
       return res.status(404).send(`Bug ${bugId} not found`)
     }
-
-    console.log('User visited the following bugs:', visitedBugs.map(visit => visit.id));
-
-
+    console.log('User visited the following bugs:', visitedBubIds.map(visit => visit.id))
     res.send(bug)
   } catch (err) {
     loggerService.error(`Error getting bug ${bugId}`, err);
-    res.status(500).send(`Error getting ${bugId} bug`)
+    res.status(400).send(`Error getting ${bugId} bug`)
   }
 }
 
@@ -125,14 +122,14 @@ export async function addBug(req, res) {
 }
 
 export async function removeBug(req, res) {
-  const { bugId } = req.params;
+  const { bugId } = req.params
 
   try {
-    await bugService.remove(bugId);
-    res.send('Bug deleted');
+    await bugService.remove(bugId)
+    res.send('Bug deleted')
   } catch (err) {
-    loggerService.error(`Failed to delete bug ${bugId}`, err);
-    res.status(400).send('Could not delete bug');
+    loggerService.error(`Failed to delete bug ${bugId}`, err)
+    res.status(400).send('Could not delete bug')
   }
 }
 

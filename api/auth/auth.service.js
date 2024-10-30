@@ -22,7 +22,7 @@ async function login(username, password) {
 
   try {
     const user = await userService.getByUsername(username)
-    if (!user) throw 'Unknown username'
+    if (!user) return null
 
     if (!isDevelopment) {
       const match = await bcrypt.compare(password, user.password)
@@ -52,8 +52,8 @@ async function signup({ username, password, fullname }) {
       throw new Error('All inputs are required')
     }
 
-    const userExit = await userService.getByUsername(username)
-    if (userExit) {
+    const userExist = await userService.getByUsername(username)
+    if (userExist) {
       console.error('Username already exists:', username);
       throw new Error('Username already exists')
     }

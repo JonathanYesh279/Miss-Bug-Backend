@@ -18,10 +18,11 @@ async function query() {
 async function getById(userId) {
   try {
     const user = users.find((user) => user._id === userId)
+    if (!user) throw new Error(`Could not get user:${userId}`)
     return user
   } catch (err) {
     loggerService.error(err)
-    throw 'Could not get user'
+    throw new Error(`Could not get user:${userId}`)
   }
 }
 
@@ -68,7 +69,7 @@ async function save(userToSave) {
     return userToSave
   } catch (err) {
     loggerService.error(err)
-    throw 'Could not save user'
+    throw new Error('Could not save user')
   }
 }
 
