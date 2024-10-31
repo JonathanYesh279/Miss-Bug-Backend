@@ -1,9 +1,9 @@
 import { authService } from '../auth/auth.service.js'
 
 export function requireAuth(req, res, next) {
-  const loggedinUser = authService.validateToken(req.cookies.loginToken);
-  if (!loggedinUser) return res.status(401).send('Login first');
+  const loggedinUser = authService.validateToken(req.cookies.loginToken)
+  if (!loggedinUser) return res.status(401).send('Login first')
 
-  req.loggedinUser = loggedinUser;
+  req.loggedinUser = loggedinUser
   next()
 }

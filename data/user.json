@@ -45,5 +45,25 @@
     "createdAt": 1730064005899,
     "score": 0,
     "imgUrl": "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+  },
+  {
+    "username": "TOTO",
+    "password": "$2b$10$HZlgKLVg7Tg5sfQCt5oOY.EFhRXDb4avcAt0e6zeJnp2XO.M7iEye",
+    "fullname": "TOTO",
+    "isAdmin": false,
+    "_id": "w4LySm",
+    "createdAt": 1730307442364,
+    "score": 0,
+    "imgUrl": "https://api.dicebear.com/7.x/initials/svg?seed=TOTO"
+  },
+  {
+    "username": "BABA",
+    "password": "$2b$10$CdYwmBt7yBPToOFYu.cI.OOyxEYNVKrxkrRN.fsbeEkytCaPQ65WS",
+    "fullname": "BABA",
+    "isAdmin": false,
+    "_id": "gRvf7D",
+    "createdAt": 1730384051264,
+    "score": 0,
+    "imgUrl": "https://api.dicebear.com/7.x/initials/svg?seed=BABA"
   }
 ]

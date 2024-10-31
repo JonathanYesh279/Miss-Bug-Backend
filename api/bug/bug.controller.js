@@ -6,13 +6,14 @@ export async function getBugs(req, res) {
     title,
     minSeverity,
     label,
+    creator, 
     sortBy = 'createdAt',
     sortDir = 1,
     pageIdx = 0,
     pageSize = 5,
   } = req.query
 
-  const filterBy = { title, minSeverity: +minSeverity, label }
+  const filterBy = { title, minSeverity: +minSeverity, label, creator }
   const sortOpts = { sortBy, sortDir }
   const pagination = { pageIdx: +pageIdx, pageSize: +pageSize } 
 
@@ -23,15 +24,14 @@ export async function getBugs(req, res) {
       pagination: { totalPages}
     })
   } catch (err) {
-    loggerService.error('Failed to query bugs', err);
-    res.status(400).send(err);
+    loggerService.error('Failed to query bugs', err)
+    res.status(400).send(err)
   }
 }
 
 export async function getBug(req, res) {
   try {
     const bugId = req.params.bugId
-    console.log('Cookies received:', req.cookies);
 
     const visitedBubIds = []
     if (req.cookies.visitedBubIds) {
@@ -51,17 +51,13 @@ export async function getBug(req, res) {
       visitedBubIds.push({ id: bugId, timestamp: now })
     }
 
-    console.log('Updated visitedBubIds:', visitedBubIds)
-
     res.cookie('visitedBubIds', JSON.stringify(visitedBubIds), { maxAge: 7000 })
 
     const bug = await bugService.getById(bugId)
     if (!bug) {
-      console.log(`Bug ${bugId} not found`);
       loggerService.warn(`Bug ${bugId} not found`)
       return res.status(404).send(`Bug ${bugId} not found`)
     }
-    console.log('User visited the following bugs:', visitedBubIds.map(visit => visit.id))
     res.send(bug)
   } catch (err) {
     loggerService.error(`Error getting bug ${bugId}`, err);

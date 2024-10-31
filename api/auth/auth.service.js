@@ -14,20 +14,17 @@ export const authService = {
   signup,
   getLoginToken,
   validateToken,
-};
+}
 
 
 async function login(username, password) {
-  const isDevelopment = true;
-
   try {
     const user = await userService.getByUsername(username)
     if (!user) return null
 
-    if (!isDevelopment) {
-      const match = await bcrypt.compare(password, user.password)
+    const match = await bcrypt.compare(password, user.password)
       if (!match) throw new Error('Wrong password')
-    }
+    
     
     const miniUser = {
       _id: user._id,
@@ -53,18 +50,21 @@ async function signup({ username, password, fullname }) {
     }
 
     const userExist = await userService.getByUsername(username)
+
     if (userExist) {
+      console.log('Username already exists:', username)
       console.error('Username already exists:', username);
       throw new Error('Username already exists')
     }
 
     const hash = await bcrypt.hash(password, saltRound)
+    console.log('Hash:', hash)
     const savedUser = await userService.save({ username, password: hash, fullname, isAdmin: username === 'admin' })
 
     return savedUser
   } catch (err) {
     loggerService.error('Failed to signup', err)
-    throw err
+    throw new Error('Could not signup')
   }
 }
 
@@ -84,7 +84,7 @@ function validateToken(token) {
     return loggedinUser 
   } catch (err) {
     loggerService.error('Failed to validate token', err)
+    return null
   }
-  return null
 }
 

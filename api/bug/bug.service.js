@@ -8,52 +8,58 @@ export const bugService = {
   save,
 }
 
-const bugs = utilService.readJsonFile('./data/bug.json');
+const bugs = utilService.readJsonFile('./data/bug.json')
 
 async function query(filterBy = {}, sortOpts = {}, pageOpts = {}) {
   var filteredBugs = [...bugs]
 
-  // Filtering
   try {
+    // Filtering
     if (filterBy.title) {
       const regExp = new RegExp(filterBy.title, 'i');
       filteredBugs = filteredBugs.filter((bug) => regExp.test(bug.title));
     }
 
+    if (filterBy.creator) {
+      filteredBugs = filteredBugs.filter(bug => bug.creator?._id === filterBy.creator)
+    }
+
     if (filterBy.minSeverity) {
-      filteredBugs = filteredBugs.filter((bug) => bug.severity >= filterBy.minSeverity)
+      filteredBugs = filteredBugs.filter(
+        (bug) => bug.severity >= filterBy.minSeverity
+      )
     }
 
     if (filterBy.label) {
-      filteredBugs = filteredBugs.filter((bug) =>
-        bug.labels.some((label) =>
-          label.toLowerCase().includes(filterBy.label.toLowerCase())
+      filteredBugs = filteredBugs.filter(bug =>
+        bug.labels.some(label =>
+        label.toLowerCase().includes(filterBy.label.toLowerCase())
         )
       )
     }
 
     // Sorting
     if (sortOpts.sortBy === 'severity') {
-      const dir = sortOpts.sortDir === 1 ? 1 : -1
-      filteredBugs.sort((a, b) => dir * (a.severity - b.severity))
-      console.log(filteredBugs)
+      const dir = sortOpts.sortDir === 1 ? 1 : -1;
+      filteredBugs.sort((a, b) => dir * (a.severity - b.severity));
     } else if (sortOpts.sortBy === 'createdAt') {
-      const dir = sortOpts.sortDir === 1 ? 1 : -1
-      filteredBugs.sort((a, b) => dir * (a.createdAt - b.createdAt))
+      const dir = sortOpts.sortDir === 1 ? 1 : -1;
+      filteredBugs.sort((a, b) => dir * (a.createdAt - b.createdAt));
     } else if (sortOpts.sortBy === 'title') {
-      const dir = sortOpts.sortDir === 1 ? 1 : -1
-      filteredBugs.sort((a, b) => dir * a.title.localeCompare(b.title))
+      const dir = sortOpts.sortDir === 1 ? 1 : -1;
+      filteredBugs.sort((a, b) => dir * a.title.localeCompare(b.title));
     }
-  
+
     // Pagination
-    const { pageIdx = 0, pageSize = 5 } = pageOpts
-    const startIdx = pageIdx * pageSize
-    const totalPages = Math.ceil(filteredBugs.length / pageSize)
+    const { pageIdx = 0, pageSize = 5 } = pageOpts;
+    const startIdx = pageIdx * pageSize;
+    const totalPages = Math.ceil(filteredBugs.length / pageSize);
 
     return {
       bugs: filteredBugs.slice(startIdx, startIdx + pageSize),
-      totalPages
+      totalPages,
     }
+
   } catch (err) {
     loggerService.error('Cannot get bugs', err)
     throw new Error('Could not get bugs')
@@ -62,14 +68,14 @@ async function query(filterBy = {}, sortOpts = {}, pageOpts = {}) {
 
 async function getById(bugId) {
   const bug = bugs.find((bug) => bug._id === bugId)
-  return bug;
+  return bug
 }
 
 async function remove(bugId) {
-  const idx = bugs.findIndex((bug) => bug._id === bugId);
+  const idx = bugs.findIndex((bug) => bug._id === bugId)
   if (idx !== -1) {
-    bugs.splice(idx, 1);
-    await _saveBugs();
+    bugs.splice(idx, 1)
+    await _saveBugs()
   }
 }
 
@@ -106,5 +112,5 @@ async function save(bugToSave, loggedinUser) {
 }
 
 async function _saveBugs() {
-  await utilService.writeJsonFile('./data/bug.json', bugs);
+  await utilService.writeJsonFile('./data/bug.json', bugs)
 }

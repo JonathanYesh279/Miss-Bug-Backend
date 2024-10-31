@@ -62,7 +62,7 @@ async function save(userToSave) {
       userToSave._id = utilService.makeId()
       userToSave.createdAt = Date.now()
       userToSave.score = 0
-      userToSave.imgUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${username}`;
+      userToSave.imgUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${userToSave.username}`;
       users.push(userToSave)
     }
     await _saveusers()
