@@ -38,24 +38,39 @@ async function getById(msgId) {
   }
 }
 
-async function addMsg(msgToAdd) {
+async function addMsg(msgToAdd, loggedinUser) {
   try {
-    msg.aboutBugId = ObjectId.createFromHexString(msg.aboutBugId)
-    msg.byUserId = ObjectId.createFromHexString(msg.byUserId)
+    if (!loggedinUser) throw new Error('Must be logged in to add msg')
+    
+    const msgToInsert = {
+      _id: ObjectId(),
+      txt: msgToAdd.txt,
+      aboutBugId: ObjectId.createFromHexString(msgToAdd.aboutBugId),
+      byUserId: ObjectId.createFromHexString(loggedinUser._id),
+      createdAt: Date.now()
+    }
 
-    const collection = await dbService.getColelction('msg')
-    await collection.insertOne(msgToAdd) 
-    return msgToAdd
+    const collection = await dbService.getColelction('msgs')
+    await collection.insertOne(msgToInsert) 
+    return msgToInsert
   } catch (err) {
     loggerService.error('Cannot add msg', err)
     throw new Error('Could not add msg')
   }
 }
 
-async function removeMsg(msgId) {
+async function removeMsg(msgId, loggedinUser) {
   try {
-    const collection = await dbService.getCollection('msg')
-    await collection.deleteOne({ _id: ObjectId.createFromHexString(msgId) })  
+    if (!loggedinUser) throw new Error('Must be logged in to remove msg')
+    
+    const collection = await dbService.getCollection('msgs')
+    const msg = await collection.findOne({ _id: ObjectId.createFromHexString(msgId) })
+    
+    if (!loggedinUser.isAdmin && msg.byUserId.toString() !== loggedinUser._id) {
+      throw new Error('Not authorized to remove msg')
+    }
+
+    await collection.deleteOne({  _id: ObjectId.createFromHexString(msgId) })
     return msgId
   } catch (err) {
     loggerService.error('Cannot remove msg', err)

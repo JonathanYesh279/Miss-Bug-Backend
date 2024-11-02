@@ -1,6 +1,6 @@
 import { msgService } from './msg.service'
 import { loggerService } from '../../services/logger.service'
-import { log } from './../middlewares/log.middleware';
+
 
 
 export async function getMsgs(req, res) {
@@ -15,17 +15,15 @@ export async function getMsgs(req, res) {
 
 export async function addMsg(req, res) {
   try {
-    const { loggedInUser } = req.session
-    if (!loggedInUser) return res.status(401).send('Not authorized')
+    const loggedinUser = req.loggedinUser
+    if (!loggedinUser) throw new Error('Must be logged in to add msg')
     
     const msg = {
-      txt: req.body.txt,
-      aboutBugId: req.body.aboutBugId,
-      byUserId: loggedInUser._id,
-      createAt: Date.now()
+      ...req.body,
+      byUserId: loggedinUser._id
     }
 
-    const addedMsg = await msgService.addMsg(msg)
+    const addedMsg = await msgService.addMsg(msg, loggedinUser)
     res.json(addedMsg)
   } catch (err) {
     loggerService.error('Failed to add msg', err)
@@ -35,13 +33,14 @@ export async function addMsg(req, res) {
 
 export async function removeMsg(req, res) {
   try {
-    const { loggedInUser } = req.session
-    if (!loggedInUser) return res.status(401).send('Not authorized')
+    const loggedinUser = req.loggedinUser
+    if (!loggedinUser) throw new Error('Must be logged in to remove msg')
     
-    const removedId = await msgService.removeMsg(req.params.id)
-    res.send({ msg: 'Message has been removed successfully', msgId: removedId })
+    const { msgId } = req.params
+    await msgService.removeMsg(msgId, loggedinUser)
+    res.send({ msg: 'Message has been removed successfully', msgId })
   } catch (err) {
-    loggerService.error('Failed to remove msg', err)  
+    loggerService.error('Failed to remove msg', err)
     res.status(500).send({ err: 'Failed to remove msg' })
   }
 }
