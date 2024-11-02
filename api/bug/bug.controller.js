@@ -30,10 +30,10 @@ export async function getBugs(req, res) {
 }
 
 export async function getBug(req, res) {
-  try {
-    const bugId = req.params.bugId
+  const { bugId } = req.params
 
-    const visitedBubIds = []
+  try {
+    let visitedBubIds = []
     if (req.cookies.visitedBubIds) {
         visitedBubIds = JSON.parse(req.cookies.visitedBubIds)
     }
@@ -58,9 +58,9 @@ export async function getBug(req, res) {
       loggerService.warn(`Bug ${bugId} not found`)
       return res.status(404).send(`Bug ${bugId} not found`)
     }
-    res.send(bug)
+    res.json(bug)
   } catch (err) {
-    loggerService.error(`Error getting bug ${bugId}`, err);
+    loggerService.error(`Error getting bug ${bugId}`, err)
     res.status(400).send(`Error getting ${bugId} bug`)
   }
 }
@@ -118,11 +118,11 @@ export async function addBug(req, res) {
 }
 
 export async function removeBug(req, res) {
-  const { bugId } = req.params
-
   try {
-    await bugService.remove(bugId)
-    res.send('Bug deleted')
+    const { bugId } = req.params
+    const loggedinUser = req.loggedinUser
+    await bugService.remove(bugId, loggedinUser)
+    res.send('Bug removed successfully')
   } catch (err) {
     loggerService.error(`Failed to delete bug ${bugId}`, err)
     res.status(400).send('Could not delete bug')

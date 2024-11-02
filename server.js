@@ -4,6 +4,7 @@ import path from 'path'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 
+import { dbService } from './services/db.service.js'
 import { authRoutes } from './api/auth/auth.routes.js'
 import { bugRoutes } from './api/bug/bug.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
@@ -17,8 +18,18 @@ const corsOptions = {
   credentials: true
 }
 
+// Connect to DB
+try {
+  dbService.connect()
+} catch (err) {
+  console.error('Cannot connect to MongoDB', err)
+  process.exit(1)
+}
+
+
 const app = express()
 const port = process.env.PORT || 3030
+
 
 app.use(express.static('public'))
 app.use(cookieParser())
@@ -26,9 +37,10 @@ app.use(cors(corsOptions))
 app.use(express.json())
 
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
+  console.log(`${req.method} ${req.url}`)
   next();
-});
+})
+
 // ROUTES
 app.use('/api/auth', authRoutes)
 app.use('/api/bug', bugRoutes)

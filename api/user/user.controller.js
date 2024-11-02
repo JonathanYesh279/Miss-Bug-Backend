@@ -3,6 +3,8 @@ import { userService } from './user.service.js'
 
 export async function getUsers(req, res) {
   try {
+    if (!req.loggedinUser.isAdmin) return res.status(403).send('You are not allowed to get users')
+    
     const users = await userService.query()
     res.json(users)
   } catch (err) {
@@ -46,8 +48,9 @@ export async function updateUser(req, res) {
 
 export async function removeUser(req, res) {
   try {
-    const userId = req.params.userId
-    await userService.remove(userId)
+    const { userId } = req.params
+    const loggedinUser = req.loggedinUser
+    await userService.remove(userId, loggedinUser)
     res.send('User deleted successfully')
   } catch (err) {
     loggerService.error(err)

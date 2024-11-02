@@ -1,5 +1,7 @@
-import { utilService } from '../../services/util.service.js'
+import { dbService } from '../../services/db.service.js'
+import { ObjectId } from 'mongodb'
 import { loggerService } from '../../services/logger.service.js'
+
 
 export const userService = {
   query,
@@ -9,16 +11,26 @@ export const userService = {
   save,
 }
 
-const users = utilService.readJsonFile('./data/user.json')
-
 async function query() {
-  return users
+  try {
+    const collection = await dbService.getCollection('users')
+    const users = await collection.find({}).toArray()
+    
+    users.forEach(user => delete user.password)
+    return users
+  } catch (err) {
+    loggerService.error('Cannot get users', err)
+    throw new Error('Cannot get users')
+  }
 }
 
 async function getById(userId) {
   try {
-    const user = users.find((user) => user._id === userId)
+    const collection = await dbService.getCollection('user')
+    const objId = ObjectId.createFromHexString(userId)
+    const user = await collection.findOne({ _id: objId })
     if (!user) throw new Error(`Could not get user:${userId}`)
+    delete user.password
     return user
   } catch (err) {
     loggerService.error(err)
@@ -28,56 +40,57 @@ async function getById(userId) {
 
 async function getByUsername(username) { 
   try {
-    const user = users.find((user) => user.username === username)
+    const collection = await dbService.getCollection('user')
+    const user = await collection.findOne({ username })
     return user
   } catch (err) {
     loggerService.error('UserService[getByUsername] - failed to get user', err)
-    throw err
+    throw new Error('Could not get user')
   }
 }
 
-async function remove(userId) {
+async function remove(userId, loggedinUser) {
   try {
-    const idx = users.findIndex((user) => user._id === userId)
-    if (idx !== -1) {
-      users.splice(idx, 1)
-      await _saveusers()
-    }
+    if (!loggedinUser.isAdmin) throw new Error('You are not allowed to remove users')
+    const collection = await dbService.getCollection('users')
+    const objId = ObjectId.createFromHexString(userId)
+    await collection.deleteOne({ _id: objId })
   } catch (err) {
     loggerService.error(err)
-    throw 'Could not remove user'
+    throw new Error('Could not remove user')
   }
 }
 
 async function save(userToSave) {
   try {
-    if (userToSave._id) {
-      const idx = users.findIndex(user => user._id === userToSave._id)
-      if (idx !== -1) {
-        users[idx] = { ...users[idx], ...userToSave }
-      } else {
-        throw new Error(`User ${userToSave._id} not found`)
-      }
-    } else {
-      userToSave._id = utilService.makeId()
-      userToSave.createdAt = Date.now()
-      userToSave.score = 0
-      userToSave.imgUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${userToSave.username}`;
-      users.push(userToSave)
+    const collection = await dbService.getCollection('users')
+    
+    const userToInsert = {
+      username: userToSave.username,
+      password: userToSave.password,
+      fullname: userToSave.fullname,
+      score: userToSave.score || 0,
+      isAdmin: userToSave.isAdmin || false,
+      imgUrl: userToSave.imgUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${userToSave.username}`,
+      createdAt: userToSave.createdAt || Date.now()
     }
-    await _saveusers()
-    return userToSave
+
+    if (userToSave._id) {
+      const objId = ObjectId.createFromHexString(userToSave._id)
+      const { _id, ...userToUpdate } = userToInsert
+      await collection.updateOne(
+        { _id: objId },
+        { $set: userToUpdate }
+      )
+      return { ...userToUpdate, _id: userToSave._id }
+    } else {
+      const result = await collection.insertOne(userToInsert)
+      return { ...userToInsert, _id: result.insertedId }
+    }
   } catch (err) {
     loggerService.error(err)
     throw new Error('Could not save user')
   }
 }
 
-async function _saveusers() {
-   try {
-     await utilService.writeJsonFile('./data/user.json', users)
-   } catch (err) {
-     loggerService.error('Failed to save users to file', err)
-     throw err
-   }
-}
+

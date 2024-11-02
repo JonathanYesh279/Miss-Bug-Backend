@@ -3,7 +3,9 @@ import Cryptr from 'cryptr'
 import dotenv from 'dotenv'
 
 import { loggerService } from '../../services/logger.service.js'
-import { userService } from '../user/user.service.js'
+import { dbService } from '../../services/db.service.js'
+
+
 
 dotenv.config()
 
@@ -19,19 +21,19 @@ export const authService = {
 
 async function login(username, password) {
   try {
-    const user = await userService.getByUsername(username)
+    const collection = await dbService.getCollection('users')
+    const user = await collection.findOne({ username })
     if (!user) return null
 
-    const match = await bcrypt.compare(password, user.password)
-      if (!match) throw new Error('Wrong password')
-    
+    const match = await bcrypt.compare(password, user.password) 
+    if (!match) throw new Error('Password is incorrect')
     
     const miniUser = {
       _id: user._id,
       fullname: user.fullname,
       imgUrl: user.imgUrl,
       score: user.score,
-      isAdmin: username === 'admin' || user.isAdmin || false,
+      isAdmin: user.isAdmin || false,
     }
     return miniUser
   } catch (err) { 
@@ -44,24 +46,24 @@ async function signup({ username, password, fullname }) {
   const saltRound = 10
 
   try {
-    loggerService.debug(`auth.service - signup with username: ${username}, fullname: ${fullname}`)
-    if (!username || !password || !fullname) {
-      throw new Error('All inputs are required')
+    const collection = await dbService.getCollection('users')
+    const existingUser = await collection.findOne({ username })
+    if (existingUser) throw new Error('Username is taken')
+    
+    const hashedPassword = await bcrypt.hash(password, saltRound)
+
+    const userToSave = {
+      username,
+      password: hashedPassword,
+      fullname,
+      score: 0,
+      imgUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${username}`,
+      isAdmin: (username === 'admin') ? true : false,
+      createdAt: Date.now()
     }
 
-    const userExist = await userService.getByUsername(username)
-
-    if (userExist) {
-      console.log('Username already exists:', username)
-      console.error('Username already exists:', username);
-      throw new Error('Username already exists')
-    }
-
-    const hash = await bcrypt.hash(password, saltRound)
-    console.log('Hash:', hash)
-    const savedUser = await userService.save({ username, password: hash, fullname, isAdmin: username === 'admin' })
-
-    return savedUser
+    const result = await collection.insertOne(userToSave)
+    return { ...userToSave, _id: result.insertedId }
   } catch (err) {
     loggerService.error('Failed to signup', err)
     throw new Error('Could not signup')

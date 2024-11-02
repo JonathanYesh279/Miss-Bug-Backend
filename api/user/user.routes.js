@@ -8,7 +8,7 @@ import { addUser, getUser, getUsers, removeUser, updateUser } from './user.contr
 
 const router = express.Router()
 
-router.get('/', getUsers)
+router.get('/', requireAuth, getUsers);
 router.get('/:userId', requireAuth, getUser)
 router.delete('/:userId', requireAuth, removeUser)
 router.put('/:userId', requireAuth, updateUser)
