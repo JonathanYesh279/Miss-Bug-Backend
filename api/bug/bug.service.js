@@ -1,6 +1,7 @@
 import { loggerService } from '../../services/logger.service.js'
 import { dbService } from '../../services/db.service.js'
 import { ObjectId } from 'mongodb'
+import { asyncLocalStorage } from '../../services/als.service.js'
 
 
 export const bugService = {
@@ -69,7 +70,9 @@ async function getById(bugId) {
   }
 }
 
-async function remove(bugId, loggedinUser) {
+async function remove(bugId) {
+  const { loggedinUser } = asyncLocalStorage.getStore()
+
   try {
     const collection = await dbService.getCollection('bugs')
     const objId = await collection.findOne({ _id: ObjectId.createFromHexString(bugId) })
@@ -84,7 +87,9 @@ async function remove(bugId, loggedinUser) {
   }
 }
 
-async function save(bugToSave, loggedinUser) {
+async function save(bugToSave) {
+  const { loggedinUser } = asyncLocalStorage.getStore()
+  
   try {
     const collection = await dbService.getCollection('bugs')
 

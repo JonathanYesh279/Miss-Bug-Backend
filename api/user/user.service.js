@@ -1,6 +1,7 @@
 import { dbService } from '../../services/db.service.js'
 import { ObjectId } from 'mongodb'
 import { loggerService } from '../../services/logger.service.js'
+import { asyncLocalStorage } from '../../services/als.service.js'
 
 
 export const userService = {
@@ -49,7 +50,8 @@ async function getByUsername(username) {
   }
 }
 
-async function remove(userId, loggedinUser) {
+async function remove(userId) {
+  const { loggedinUser } = asyncLocalStorage.getStore()
   try {
     if (!loggedinUser.isAdmin) throw new Error('You are not allowed to remove users')
     const collection = await dbService.getCollection('users')

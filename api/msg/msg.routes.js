@@ -1,6 +1,6 @@
 import express from 'express'
-import { requireAuth } from '../middlewares/require-auth.middleware'
-import { getMsgs, addMsg, removeMsg } from './msg.controller'
+import { getMsgs, addMsg, removeMsg } from './msg.controller.js'
+import { requireAuth } from '../middlewares/require-auth.middleware.js'
 
 const router = express.Router()
 

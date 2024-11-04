@@ -1,12 +1,18 @@
-import { msgService } from './msg.service'
-import { loggerService } from '../../services/logger.service'
+import { msgService } from './msg.service.js'
+import { loggerService } from '../../services/logger.service.js'
+
 
 
 
 export async function getMsgs(req, res) {
   try {
-    const msgs = await msgService.query(req.query)
-    res.send(msgs)
+    const filterBy = {}
+    if (req.query.bugId) {
+      filterBy.aboutBugId = new ObjectId.createFromHexString(req.query.bugId)
+    }
+
+    const msgs = await msgService.query(filterBy)
+    res.json(msgs)
   } catch (err) {
     loggerService.error('Failed to get msgs', err)
     res.status(500).send({ err: 'Failed to get msgs' })
